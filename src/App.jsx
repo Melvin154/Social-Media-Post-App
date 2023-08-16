@@ -3,7 +3,7 @@ import Nav from "./components/Nav";
 
 
 import Footer from "./components/Footer";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 
 import Home from "./components/Home";
 import About from "./components/About";
@@ -14,7 +14,8 @@ import Missing from "./components/Missing";
 import PostLayout from "./layouts/PostLayout";
 
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import format from "date-fns/format";
 
 function App() {
 
@@ -39,7 +40,7 @@ const [posts,setPosts]=useState([
   },
   {
     id:4,
-    title:"Final Post",
+    title:"Fourth Post",
     datetime:"Jan 3, 2024 01:12:45 AM",
     body:"Got my first onsite offer mail from my client..."
   }
@@ -50,13 +51,99 @@ const [posts,setPosts]=useState([
 
 const [search,setSearch]=useState('')
 const [searcResults,setSearchResults]=useState([]);
+const [postTitle,setPostTitle]=useState('');
+const [postBody,setPostBody]=useState('');
+const navigate=useNavigate()
+
+
+useEffect(()=>{
+  const filteredResults=posts.filter((post)=>
+  ((post.body).toLowerCase()).includes(search.toLowerCase())||((post.title).toLowerCase()).includes(search.toLowerCase()));
+
+  setSearchResults(filteredResults.reverse());
+},[posts,search]);
+  
+  
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const id = posts.length ? posts[posts.length - 1].id + 1 : 1;
+  const datetime = format(new Date(), 'MMMM dd, yyyy pp');
+  const newPost = { id, title: postTitle, datetime, body: postBody };
+
+      const allPosts = [...posts, newPost];
+      setPosts(allPosts);
+      setPostTitle('');
+      setPostBody('');
+
+      
+  navigate("/")
+  } 
+
+
+const handleDelete=(id)=>{
+const postsList=posts.filter(post=>post.id !==id);
+setPosts(postsList)
+navigate('/')
+}
+
+
+
 
 
   return (
     <div className="App">
       <Header title="Instagram"/>
       <Nav search={search} setSearch={setSearch}/>
-      <Home posts={posts}/>
+     
+      
+
+
+
+
+<Routes>
+  <Route path="/" element={ <Home posts={searcResults}/>}/>
+  <Route path="/about" element={<About/>}/>
+
+
+
+  {/*Nested Routin*/}
+  <Route path="post">
+  <Route index element={<NewPost 
+        handleSubmit={handleSubmit}
+        postTitle={postTitle}
+        setPostTitle={setPostTitle}
+        postBody={postBody}
+        setPostBody={setPostBody}
+      />
+}/>
+<Route path=":id" element={<PostPage posts={posts} handleDelete={handleDelete}/>}/>
+</Route>
+
+
+<Route path="*" element={<Missing/>}/>
+
+</Routes>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       {/*
 
